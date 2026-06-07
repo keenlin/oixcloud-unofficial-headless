@@ -1,6 +1,6 @@
 services:
   flclash:
-    image: ghcr.io/keenlin/oixcloud-unofficial-headless:20260607
+    image: ghcr.io/keenlin/oixcloud-unofficial-headless:latest
     container_name: flclash
     restart: unless-stopped
     ports:
