@@ -28,11 +28,13 @@ RUN set -eux; \
         ca-certificates \
         curl \
         dbus-x11 \
+        gnome-keyring \
         libayatana-appindicator3-1 \
         libegl1 \
         libgles2 \
         libkeybinder-3.0-0 \
         libsecret-1-0 \
+        libsecret-tools \
         xdg-utils; \
     case "$TARGETARCH" in \
         amd64) flclash_deb_url="$FLCLASH_AMD64_DEB_URL" ;; \

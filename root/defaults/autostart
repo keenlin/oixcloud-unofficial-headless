@@ -1,1 +1,37 @@
-/usr/bin/FlClash
+#!/usr/bin/env sh
+set -eu
+
+if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+    export XDG_RUNTIME_DIR="/tmp/runtime-$(id -u)"
+fi
+
+mkdir -p "$XDG_RUNTIME_DIR"
+chmod 700 "$XDG_RUNTIME_DIR"
+
+if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]; then
+    exec dbus-run-session -- "$0" "$@"
+fi
+
+keyring_dir="${HOME:?}/.local/share/keyrings"
+keyring_env="${TMPDIR:-/tmp}/flclash-gnome-keyring.env"
+
+trap 'rm -f "$keyring_env"' EXIT
+
+mkdir -p "$keyring_dir"
+chmod 700 "$keyring_dir"
+
+printf '\n' | timeout 15s gnome-keyring-daemon --unlock --components=secrets >"$keyring_env"
+
+if [ -s "$keyring_env" ]; then
+    set -a
+    . "$keyring_env"
+    set +a
+fi
+
+timeout 15s secret-tool store --label="FlClash container startup probe" \
+    application flclash-container purpose startup <<EOF
+ready
+EOF
+timeout 15s secret-tool clear application flclash-container purpose startup
+
+exec /usr/bin/FlClash
