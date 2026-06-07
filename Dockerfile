@@ -28,6 +28,8 @@ RUN set -eux; \
         ca-certificates \
         curl \
         dbus-x11 \
+        fontconfig \
+        fonts-noto-cjk \
         gnome-keyring \
         libayatana-appindicator3-1 \
         libegl1 \
@@ -45,6 +47,7 @@ RUN set -eux; \
     dpkg-deb -x /tmp/flclash.deb /; \
     ln -sf /usr/share/FlClash/FlClash /usr/bin/FlClash; \
     chmod +x /usr/share/FlClash/FlClash /usr/share/FlClash/FlClashCore /usr/bin/FlClash; \
+    fc-cache -f; \
     rm -f /tmp/flclash.deb; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
