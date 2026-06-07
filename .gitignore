@@ -1,0 +1,13 @@
+# Local package artifacts
+files/
+*.deb
+
+# Agent/runtime state
+.agents/
+.codex/
+.agent_task/learning/
+.agent_task/scripts/linux/*.log
+.agent_task/scripts/win/*.log
+
+# OS/editor noise
+.DS_Store
