@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG BASE_IMAGE=lscr.io/linuxserver/baseimage-kasmvnc:debianbookworm
+ARG BASE_IMAGE=lscr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
 
 FROM ${BASE_IMAGE}
 
@@ -47,6 +47,12 @@ RUN set -eux; \
     dpkg-deb -x /tmp/flclash.deb /; \
     ln -sf /usr/share/FlClash/FlClash /usr/bin/FlClash; \
     chmod +x /usr/share/FlClash/FlClash /usr/share/FlClash/FlClashCore /usr/bin/FlClash; \
+    runtime_glibc="$(ldd --version | sed -n '1s/.* //p')"; \
+    required_glibc="$(find /usr/share/FlClash -type f \( -name 'FlClash' -o -name 'FlClashCore' -o -name '*.so' \) -exec grep -Eaho 'GLIBC_[0-9]+\.[0-9]+' {} + | sed 's/^GLIBC_//' | sort -Vu | tail -n 1)"; \
+    if [ -n "$required_glibc" ] && [ "$(printf '%s\n%s\n' "$runtime_glibc" "$required_glibc" | sort -V | tail -n 1)" != "$runtime_glibc" ]; then \
+        echo "FlClash requires GLIBC_${required_glibc}, but base image provides glibc ${runtime_glibc}" >&2; \
+        exit 1; \
+    fi; \
     fc-cache -f; \
     rm -f /tmp/flclash.deb; \
     apt-get clean; \
