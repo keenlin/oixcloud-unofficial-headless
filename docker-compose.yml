@@ -1,0 +1,13 @@
+services:
+  flclash:
+    image: ghcr.io/keenlin/oixcloud-unofficial-headless:20260607
+    container_name: flclash
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "7890:7890"
+    volumes:
+      - flclash_config:/config
+
+volumes:
+  flclash_config:
