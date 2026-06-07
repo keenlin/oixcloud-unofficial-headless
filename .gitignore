@@ -5,9 +5,7 @@ files/
 # Agent/runtime state
 .agents/
 .codex/
-.agent_task/learning/
-.agent_task/scripts/linux/*.log
-.agent_task/scripts/win/*.log
+.agent_task/
 
 # OS/editor noise
 .DS_Store
