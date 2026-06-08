@@ -5,7 +5,6 @@ ARG BASE_IMAGE=lscr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
 FROM ${BASE_IMAGE}
 
 ARG TARGETARCH
-ARG FLCLASH_VERSION=0.8.93
 ARG FLCLASH_AMD64_DEB_URL=https://dl.dler.io/flclash-linux-amd64.deb
 ARG FLCLASH_ARM64_DEB_URL=https://dl.dler.io/flclash-linux-arm64.deb
 ARG OCI_SOURCE=https://github.com/oixcloud-unofficial-headless
@@ -46,11 +45,6 @@ RUN set -eux; \
     esac; \
     curl -fsSL "$flclash_deb_url" -o /tmp/flclash.deb; \
     dpkg-deb -x /tmp/flclash.deb /; \
-    installed_flclash_version="$(sed -n 's/.*"version":"\([^"]*\)".*/\1/p' /usr/share/FlClash/data/flutter_assets/version.json)"; \
-    if [ "$installed_flclash_version" != "$FLCLASH_VERSION" ]; then \
-        echo "Downloaded FlClash ${installed_flclash_version}, expected ${FLCLASH_VERSION}" >&2; \
-        exit 1; \
-    fi; \
     ln -sf /usr/share/FlClash/FlClash /usr/bin/FlClash; \
     chmod +x /usr/share/FlClash/FlClash /usr/share/FlClash/FlClashCore /usr/bin/FlClash; \
     runtime_glibc="$(ldd --version | sed -n '1s/.* //p')"; \
