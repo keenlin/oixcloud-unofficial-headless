@@ -6,6 +6,9 @@ services:
     ports:
       - "3000:3000"
       - "7890:7890"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     volumes:
       - flclash_config:/config
 

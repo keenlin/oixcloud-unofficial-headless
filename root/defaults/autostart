@@ -34,4 +34,4 @@ ready
 EOF
 timeout 15s secret-tool clear application flclash-container purpose startup
 
-exec /usr/bin/FlClash
+exec sudo -E -- /usr/bin/FlClash
