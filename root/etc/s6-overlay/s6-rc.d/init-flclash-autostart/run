@@ -1,0 +1,24 @@
+#!/usr/bin/with-contenv bash
+set -euo pipefail
+
+autostart="/config/.config/openbox/autostart"
+
+if [[ ! -f "${autostart}" ]]; then
+    mkdir -p /config/.config/openbox
+    cp /defaults/autostart "${autostart}"
+fi
+
+if grep -Eq "^(exec /usr/bin/FlClash|exec sudo -E -- /usr/bin/FlClash)$" "${autostart}"; then
+    if grep -qx "set -eu" "${autostart}"; then
+        if ! grep -Fqx '    exec sudo -E -- "$0" "$@"' "${autostart}"; then
+            sed -i '/^set -eu$/a\\nif [ "$(id -u)" -ne 0 ]; then\n    exec sudo -E -- "$0" "$@"\nfi' "${autostart}"
+        fi
+
+        sed -i "s|^exec sudo -E -- /usr/bin/FlClash$|exec /usr/bin/FlClash|" "${autostart}"
+    else
+        cp /defaults/autostart "${autostart}"
+    fi
+fi
+
+chown abc:abc "${autostart}"
+chmod 755 "${autostart}"

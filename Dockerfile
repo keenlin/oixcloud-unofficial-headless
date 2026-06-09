@@ -60,6 +60,6 @@ RUN set -eux; \
 
 COPY root/ /
 
-RUN chmod 755 /defaults/autostart
+RUN chmod 755 /defaults/autostart /etc/s6-overlay/s6-rc.d/init-flclash-autostart/run
 
 EXPOSE 3000

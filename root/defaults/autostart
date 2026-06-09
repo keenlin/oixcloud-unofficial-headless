@@ -1,6 +1,10 @@
 #!/usr/bin/env sh
 set -eu
 
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo -E -- "$0" "$@"
+fi
+
 if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
     export XDG_RUNTIME_DIR="/tmp/runtime-$(id -u)"
 fi
@@ -34,4 +38,4 @@ ready
 EOF
 timeout 15s secret-tool clear application flclash-container purpose startup
 
-exec sudo -E -- /usr/bin/FlClash
+exec /usr/bin/FlClash
