@@ -1,0 +1,42 @@
+[Unit]
+Description=FlClash Docker Compose Service
+Requires=docker.service
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/data/flclash
+
+ExecStartPre=/bin/bash -c '/sbin/ip rule add fwmark 666 lookup 666 || true'
+ExecStartPre=/bin/bash -c '/sbin/ip route add local 0.0.0.0/0 dev lo table 666 || true'
+ExecStartPre=/bin/bash -c '/sbin/iptables -t mangle -F PREROUTING 2>/dev/null || true'
+ExecStartPre=/bin/bash -c '/sbin/iptables -t mangle -F clash 2>/dev/null || true'
+ExecStartPre=/bin/bash -c '/sbin/iptables -t mangle -X clash 2>/dev/null || true'
+ExecStartPre=/sbin/iptables -t mangle -N clash
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 0.0.0.0/8 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 127.0.0.0/8 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 10.8.0.0/16 -p tcp -j TPROXY --on-port 7893 --tproxy-mark 666
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 10.8.0.0/16 -p udp -j TPROXY --on-port 7893 --tproxy-mark 666
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 10.0.0.0/8 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 172.16.0.0/12 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 192.168.0.0/16 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 169.254.0.0/16 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 224.0.0.0/4 -j RETURN
+ExecStartPre=/sbin/iptables -t mangle -A clash -d 240.0.0.0/4 -j RETURN
+ExecStartPre=/bin/bash -c '/sbin/iptables -t mangle -A clash -p tcp -j TPROXY --on-port 7893 --tproxy-mark 666'
+ExecStartPre=/bin/bash -c '/sbin/iptables -t mangle -A clash -p udp -j TPROXY --on-port 7893 --tproxy-mark 666'
+ExecStartPre=/sbin/iptables -t mangle -A PREROUTING -j clash
+
+ExecStart=/usr/bin/docker compose -f /data/flclash/docker-compose.yml up -d
+ExecStop=/usr/bin/docker compose -f /data/flclash/docker-compose.yml down
+
+ExecStopPost=/bin/bash -c '/sbin/ip rule del fwmark 666 lookup 666 || true'
+ExecStopPost=/bin/bash -c '/sbin/ip route del local 0.0.0.0/0 dev lo table 666 || true'
+ExecStopPost=/bin/bash -c '/sbin/iptables -t mangle -D PREROUTING -j clash 2>/dev/null || true'
+ExecStopPost=/bin/bash -c '/sbin/iptables -t mangle -F clash 2>/dev/null || true'
+ExecStopPost=/bin/bash -c '/sbin/iptables -t mangle -X clash 2>/dev/null || true'
+
+[Install]
+WantedBy=multi-user.target

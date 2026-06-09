@@ -1,6 +1,27 @@
 # syntax=docker/dockerfile:1
 
 ARG BASE_IMAGE=lscr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
+ARG QUICKJS_C_BRIDGE_URL=https://github.com/abner/quickjs-c-bridge/archive/7204d9bf1afbe0550d51d7decdcce398b2c22e1a.tar.gz
+
+FROM ubuntu:noble AS quickjs-c-bridge-builder
+
+ARG QUICKJS_C_BRIDGE_URL
+
+RUN set -eux; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        cmake \
+        curl \
+        g++ \
+        gcc \
+        make; \
+    curl -fsSL "$QUICKJS_C_BRIDGE_URL" -o /tmp/quickjs-c-bridge.tar.gz; \
+    mkdir -p /tmp/quickjs-c-bridge; \
+    tar -xzf /tmp/quickjs-c-bridge.tar.gz -C /tmp/quickjs-c-bridge --strip-components=1; \
+    cmake -S /tmp/quickjs-c-bridge/linux -B /tmp/quickjs-c-bridge/build/linux -DCMAKE_BUILD_TYPE=Release; \
+    cmake --build /tmp/quickjs-c-bridge/build/linux; \
+    test -f /tmp/quickjs-c-bridge/build/linux/libquickjs_c_bridge_plugin.so
 
 FROM ${BASE_IMAGE}
 
@@ -19,7 +40,8 @@ ENV TITLE="FlClash" \
     DISABLE_DRI="true" \
     NO_FULL="true" \
     LIBGL_ALWAYS_SOFTWARE="1" \
-    GTK_USE_PORTAL="0"
+    GTK_USE_PORTAL="0" \
+    LIBQUICKJSC_PATH="/usr/share/FlClash/lib/libquickjs_c_bridge_plugin.so"
 
 RUN set -eux; \
     rm -f /etc/apt/sources.list.d/docker.list /etc/apt/sources.list.d/nodesource.list; \
@@ -29,7 +51,6 @@ RUN set -eux; \
         curl \
         dbus-x11 \
         fontconfig \
-        fonts-noto-cjk \
         gnome-keyring \
         libayatana-appindicator3-1 \
         libegl1 \
@@ -58,8 +79,9 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+COPY --from=quickjs-c-bridge-builder /tmp/quickjs-c-bridge/build/linux/libquickjs_c_bridge_plugin.so /usr/share/FlClash/lib/libquickjs_c_bridge_plugin.so
 COPY root/ /
 
-RUN chmod 755 /defaults/autostart /etc/s6-overlay/s6-rc.d/init-flclash-autostart/run
+RUN chmod 755 /usr/share/FlClash/lib/libquickjs_c_bridge_plugin.so /defaults/autostart /etc/s6-overlay/s6-rc.d/init-flclash-autostart/run
 
 EXPOSE 3000
